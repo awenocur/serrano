@@ -1,7 +1,7 @@
 from django.conf.urls import patterns, url
 from django.views.decorators.cache import never_cache
 from avocado.models import DataView
-from serrano.resources import templates
+from serrano.resources import templates, BaseResource
 from serrano.resources.history import RevisionsResource, ObjectRevisionResource
 from .templates import BriefRevisionTemplate
 
@@ -37,11 +37,16 @@ class BadObjectRevisionUrlResource(ObjectRevisionResource):
     object_model_base_uri = 'serrano:views'
 
 
+class NonStandardPostResource(BaseResource):
+    supported_accept_types = ('text/plain',)
+    supported_content_types = ('text/plain',)
+    def post(self, request):
+        return self.render(request, {'text': request._stream.read()})
 
 no_object_model_resource = never_cache(NoObjectModelRevisionResource())
 template_resource = never_cache(CustomTemplateRevisionResource())
 bad_object_revision_url_resource = never_cache(BadObjectRevisionUrlResource())
-
+nonstandard_post_resource = never_cache(NonStandardPostResource())
 
 urlpatterns = patterns('',
     url(r'^no_model/$', no_object_model_resource, name='no_model'),
@@ -49,5 +54,6 @@ urlpatterns = patterns('',
     url(r'^revisions/(?P<revision_pk>\d+)/$', bad_object_revision_url_resource,
         name='no_object_id'),
     url(r'^(?P<object_pk>\d+)/revisions/$', bad_object_revision_url_resource,
-        name='no_revision_id')
+        name='no_revision_id'),
+    url(r'^nonstandard_post/$', nonstandard_post_resource)
 )

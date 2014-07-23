@@ -1,4 +1,5 @@
 import time
+from cStringIO import StringIO
 from django.test import TestCase
 from django.test.utils import override_settings
 from django.core.urlresolvers import reverse
@@ -88,6 +89,13 @@ class TokenBackendTestCase(TestCase):
         token = token_generator.make(user)
         resp = self.client.get(reverse('serrano:root'), {'token': token},
                                HTTP_ACCEPT='application/json')
+        self.assertEqual(resp.status_code, 200)
+
+        # This tests a POST request with a content-type that isn't
+        # automatically deserialized.
+        client_post_args = {'HTTP_ACCEPT':'application/json', 'content_type':'text/plain', 'wsgi.input':StringIO("This is some text.")}
+        resp = self.client.post('/api/test/nonstandard_post/?token=' + token,
+                               **client_post_args)
         self.assertEqual(resp.status_code, 200)
 
     @override_settings(SERRANO_AUTH_REQUIRED=True, SESSION_COOKIE_AGE=2,
