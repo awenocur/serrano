@@ -21,7 +21,8 @@ def _get_request_object(request, attrs=None, klass=None, key=None):
     """
     # Attempt to derive the `attrs` from the request
     if attrs is None:
-        if request.method == 'POST':
+        if request.method == 'POST' and hasattr(request, "data")\
+                and request.data:
             attrs = request.data.get(key)
         elif request.method == 'GET':
             attrs = request.GET.get(key)
@@ -32,7 +33,8 @@ def _get_request_object(request, attrs=None, klass=None, key=None):
         request_data = None
 
         # Try to read the query data from the request
-        if request.method == 'POST':
+        if request.method == 'POST' and hasattr(request, "data")\
+                and request.data:
             request_data = request.data.get('query')
         elif request.method == 'GET':
             request_data = request.GET.get('query')
